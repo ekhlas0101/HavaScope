@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="prs" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HavaScope — Live Weather, Alerts & R Statistical Analytics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Vazirmatn:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <!-- نوار ناوبری بالا -->
+  <header class="navbar">
+    <div class="container navbar-content">
+      <div class="navbar-top-row">
+        <div class="brand">
+          <span class="brand-icon">🌤️</span>
+          <div>
+            <h1 class="brand-title">HavaScope</h1>
+            <span class="brand-subtitle" data-i18n="subtitle">آب‌وهوای زنده جهان، تقویم افغانستان و تحلیل احصائیوی R</span>
+          </div>
+        </div>
+
+        <!-- باکس کشویی انتخاب ۴ زبان -->
+        <div class="lang-box">
+          <span class="lang-globe" aria-hidden="true">🌐</span>
+          <select id="language-select" aria-label="Language Selector">
+            <option value="prs">🇦🇫 دری (افغانستان)</option>
+            <option value="tr">🇹🇷 Türkçe</option>
+            <option value="fa">🇮🇷 فارسی</option>
+            <option value="en">🇬🇧 English</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- تب‌های ناوبری -->
+      <nav class="nav-tabs">
+        <button class="tab-btn active" data-tab="live" data-i18n="tabLive">آب‌وهوای زنده</button>
+        <button class="tab-btn" data-tab="rstats" data-i18n="tabRStats">پروژه احصائیوی R (مضمون YZM562)</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container main-content">
+    
+    <!-- =========================================================
+         بخش اول: آب‌وهوای زنده، تقویم افغانی، ساعتی و ۷ روز تعاملی
+         ========================================================= -->
+    <section id="tab-live" class="tab-panel active">
+      
+      <div class="search-section card">
+        <form id="search-form" class="search-box">
+          <input type="text" id="city-input" data-i18n-placeholder="searchPlaceholder" placeholder="جستجوی هر کشور، شهر یا ولسوالی در جهان (مثلاً: Andkhoy, Kabul, Istanbul)..." required />
+          <select id="country-quick-select" class="country-select" aria-label="Quick Country Selector">
+            <option value="" data-i18n="selectCountryOpt">🌍 انتخاب سریع کشور...</option>
+            <option value="Afghanistan">🇦🇫 Afghanistan (Kabul)</option>
+            <option value="Türkiye">🇹🇷 Türkiye (Ankara)</option>
+            <option value="Iran">🇮🇷 Iran (Tehran)</option>
+            <option value="Tajikistan">🇹🇯 Tajikistan (Dushanbe)</option>
+            <option value="Uzbekistan">🇺🇿 Uzbekistan (Tashkent)</option>
+            <option value="Pakistan">🇵🇰 Pakistan (Islamabad)</option>
+            <option value="United Arab Emirates">🇦🇪 UAE (Dubai)</option>
+            <option value="Saudi Arabia">🇸🇦 Saudi Arabia (Riyadh)</option>
+            <option value="Germany">🇩🇪 Germany (Berlin)</option>
+            <option value="United Kingdom">🇬🇧 United Kingdom (London)</option>
+            <option value="United States">🇺🇸 United States (New York)</option>
+            <option value="Canada">🇨🇦 Canada (Toronto)</option>
+            <option value="Japan">🇯🇵 Japan (Tokyo)</option>
+            <option value="Australia">🇦🇺 Australia (Sydney)</option>
+            <option value="Russia">🇷🇺 Russia (Moscow)</option>
+            <option value="China">🇨🇳 China (Beijing)</option>
+            <option value="India">🇮🇳 India (New Delhi)</option>
+            <option value="France">🇫🇷 France (Paris)</option>
+          </select>
+          <button type="submit" class="btn-primary" data-i18n="searchBtn">جستجو</button>
+        </form>
+
+        <div class="favorites-bar">
+          <span class="fav-label" data-i18n="favoritesLabel">شهرها و ولسوالی‌های دلخواه:</span>
+          <div id="favorites-list" class="favorites-list"></div>
+          <button id="add-fav-btn" class="btn-outline" data-i18n="addFavBtn">+ ثبت این موقعیت</button>
+        </div>
+      </div>
+
+      <div id="status-banner" class="status-banner hidden"></div>
+
+      <div class="current-grid">
+        <div class="card current-main">
+          <div class="current-header">
+            <div>
+              <h2 id="current-city-name">İstanbul, Türkiye</h2>
+              <p id="current-date" class="muted-text">--</p>
+            </div>
+            <span id="current-weather-icon" class="weather-big-icon">⛅</span>
+          </div>
+          <div class="current-temp-row">
+            <span id="current-temp" class="big-temp">--°C</span>
+            <span id="current-desc" class="weather-badge">--</span>
+          </div>
+        </div>
+
+        <div class="card current-details">
+          <h3 data-i18n="detailsTitle">جزئیات فعلی</h3>
+          <div class="metrics-grid">
+            <div class="metric-item">
+              <span class="metric-label" data-i18n="feelsLike">درجه حرارت حسی</span>
+              <span id="metric-feels" class="metric-value">--°C</span>
+            </div>
+            <div class="metric-item">
+              <span class="metric-label" data-i18n="humidity">رطوبت هوا</span>
+              <span id="metric-humidity" class="metric-value">--%</span>
+            </div>
+            <div class="metric-item">
+              <span class="metric-label" data-i18n="windSpeed">سرعت باد</span>
+              <span id="metric-wind" class="metric-value">-- km/sa</span>
+            </div>
+            <div class="metric-item">
+              <span class="metric-label" data-i18n="precipitation">بارندگی</span>
+              <span id="metric-precip" class="metric-value">-- mm</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="daily-header-row">
+          <h3 data-i18n="dailyTitle">پیش‌بینی ۷ روز آینده (برای دیدن جزئیات ساعت‌وار روی هر روز کلیک کنید)</h3>
+          <span id="selected-day-badge" class="selected-day-badge">--</span>
+        </div>
+        <div id="daily-forecast-grid" class="daily-grid"></div>
+      </div>
+
+      <div class="card chart-card">
+        <h3 id="hourly-section-title" data-i18n="hourlyTitle">وضعیت ساعت‌وار هوا (۲۴ ساعت آینده)</h3>
+        <div class="chart-wrapper">
+          <canvas id="hourlyChart"></canvas>
+        </div>
+        <div id="hourly-strip" class="hourly-strip"></div>
+      </div>
+
+      <div class="card alerts-card">
+        <div class="alerts-header">
+          <h3 data-i18n="alertsTitle">🚨 اعلان‌های شاروالی، هشدارهای هواشناسی و زلزله / سونامی</h3>
+          <span id="alert-region-badge" class="alert-region-badge">500 km Çapında Canlı İzleme</span>
+        </div>
+        <div id="alerts-container" class="alerts-list"></div>
+      </div>
+
+    </section>
+
+    <!-- =========================================================
+         بخش دوم: تحلیل‌های آماری پویا برای هر شهر انتخاب‌شده (۲۰۲۱-۲۰۲۵)
+         ========================================================= -->
+    <section id="tab-rstats" class="tab-panel">
+      
+      <div class="card r-header-card">
+        <div class="r-title-row">
+          <h2 id="r-dynamic-title">تحلیل احصائیوی درجه حرارت روزانه (۲۰۲۱–۲۰۲۵)</h2>
+          <span id="r-engine-badge" class="selected-day-badge">R 4.6.1 Live Engine</span>
+        </div>
+        <p id="r-dynamic-desc" class="muted-text" data-i18n="rProjectDesc">
+          پوهنتون گدیک استانبول — پروژه نهایی مضمون تطبیقات احصائیه با زبان R
+        </p>
+      </div>
+
+      <div class="r-kpi-grid">
+        <div class="card kpi-card">
+          <span class="kpi-label" data-i18n="kpiMean">اوسط درجه حرارت ۵ ساله</span>
+          <strong id="r-kpi-mean" class="kpi-value">-- °C</strong>
+          <span id="r-kpi-mean-sub" class="kpi-sub">--</span>
+        </div>
+        <div class="card kpi-card hot">
+          <span class="kpi-label" data-i18n="kpiHottest">گرم‌ترین روز (اعظمی)</span>
+          <strong id="r-kpi-max" class="kpi-value">-- °C</strong>
+          <span id="r-kpi-max-sub" class="kpi-sub">--</span>
+        </div>
+        <div class="card kpi-card cold">
+          <span class="kpi-label" data-i18n="kpiColdest">سردترین روز (اصغری)</span>
+          <strong id="r-kpi-min" class="kpi-value">-- °C</strong>
+          <span id="r-kpi-min-sub" class="kpi-sub">--</span>
+        </div>
+        <div class="card kpi-card">
+          <span class="kpi-label" data-i18n="kpiWelch">آزمون t ولش (تابستان و زمستان)</span>
+          <strong id="r-kpi-t" class="kpi-value">--</strong>
+          <span id="r-kpi-t-sub" class="kpi-sub">--</span>
+        </div>
+      </div>
+
+      <div class="card chart-card">
+        <h3 id="r-monthly-title" data-i18n="rMonthlyChartTitle">اوسط، اعظمی و اصغری درجه حرارت ماهوار (۲۰۲۱–۲۰۲۵)</h3>
+        <div class="chart-wrapper">
+          <canvas id="rMonthlyChart"></canvas>
+        </div>
+      </div>
+
+      <div class="r-tests-grid">
+        <div class="card">
+          <h3 data-i18n="tTestTitle">۱. آزمون t مستقل ولش (مقایسه تابستان و زمستان)</h3>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Grup</th>
+                  <th>n</th>
+                  <th>Ortalama (°C)</th>
+                  <th>Std. Sapma</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Yaz (Haziran–Ağustos)</td>
+                  <td id="r-yaz-n">--</td>
+                  <td id="r-yaz-mean">-- °C</td>
+                  <td id="r-yaz-sd">-- °C</td>
+                </tr>
+                <tr>
+                  <td>Kış (Aralık–Şubat)</td>
+                  <td id="r-kis-n">--</td>
+                  <td id="r-kis-mean">-- °C</td>
+                  <td id="r-kis-sd">-- °C</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p id="r-ttest-note" class="test-result-note">
+            <strong>Sonuç:</strong> --
+          </p>
+        </div>
+
+        <div class="card">
+          <h3 data-i18n="anovaTitle">۲. تحلیل واریانس یک‌طرفه ANOVA (مقایسه ۴ فصل)</h3>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Varyans Kaynağı</th>
+                  <th>df</th>
+                  <th>Kareler Ort.</th>
+                  <th>F-Değeri</th>
+                  <th>p-Değeri</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Mevsimler Arası</td>
+                  <td>3</td>
+                  <td id="r-ms-between">--</td>
+                  <td id="r-f-stat">--</td>
+                  <td>&lt; 2e-16 ***</td>
+                </tr>
+                <tr>
+                  <td>Grup İçi (Hata)</td>
+                  <td id="r-df-within">--</td>
+                  <td id="r-ms-within">--</td>
+                  <td>—</td>
+                  <td>—</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="test-result-note">
+            <strong>Sonuç:</strong> Tukey HSD çoklu karşılaştırma testine göre tüm mevsim çiftleri arasında p &lt; 0.001 düzeyinde anlamlı fark saptanmıştır.
+          </p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="code-header">
+          <h3 data-i18n="rCodeTitle">کد زبان R استفاده شده در پروژه (نسخه 4.6.1)</h3>
+          <button id="copy-r-btn" class="btn-outline" data-i18n="copyCodeBtn">کاپی کردن کد</button>
+        </div>
+        <pre class="code-block"><code id="r-code-snippet"># Open-Meteo Verisi (2021-2025) & İstatistiksel Analiz
+url <- "https://archive-api.open-meteo.com/v1/archive?latitude=41.0082&longitude=28.9784&start_date=2021-01-01&end_date=2025-12-31&daily=temperature_2m_max,temperature_2m_min,temperature_2m_mean&timezone=auto&format=csv"
+raw_data <- read.csv(url, skip = 2)
+colnames(raw_data) <- c("date", "temp_max", "temp_min", "temp_mean")
+
+# Welch t-Testi (Yaz vs. Kış) ve Tek Yönlü ANOVA
+t.test(temp_mean ~ season, data = subset(clean_data, season %in% c("Yaz", "Kis")))
+anova_model <- aov(temp_mean ~ season, data = clean_data)
+summary(anova_model)</code></pre>
+      </div>
+
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>HavaScope © 2026 — Open-Meteo Global API, USGS Seismic Feed & R Statistical Computing (YZM562)</p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
